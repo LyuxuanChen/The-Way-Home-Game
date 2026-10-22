@@ -353,9 +353,21 @@ def persuade(state):
     state["cosign"] = (choice == "2")
     state["david_ready"] = True
     if state["cosign"]:
-        show_message("Two signatures", "'You wrote those words. You haven't written them yet.' "
-                "David goes still. He agrees to add his private key beside yours. "
-                "Meet him at the experiment hall console.")
+        show_message(
+            "Two signatures",
+            "YOU: 'After tonight, everything is different.' "
+            "Those are your words, David.\n\n"
+            "David goes still.\n\n"
+            "DAVID: I just wrote that in my diary. "
+            "I haven't shown it to anyone. How could you know?\n\n"
+            "YOU: I read it in the ruins of this place, "
+            "forty years from now.\n\n"
+            "He studies your face, recognising his colleague "
+            "beneath forty years of age.\n\n"
+            "DAVID: Then we have to stop this. Together.\n\n"
+            "He agrees to add his private key beside yours. "
+            "Meet him at the experiment hall console."
+        )
     else:
         show_message("He steps aside", "David studies her photograph and nods. "
                 "He will let you use the override, but the machine must abort "
