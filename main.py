@@ -108,13 +108,43 @@ def notebook(state):
 
 # 3. INTRODUCTION
 def prologue():
-    show_message("THE WAY HOME - Archive: forty years ago",
-            "REPORTER: Why build a machine that can reach into the past?\n\n"
-            "DAVID: Because everything worth keeping is already behind us. "
-            "I'm building a way home.\n\n"
-            "The recording ends before the living-subject test. The Rewinder "
-            "pulled a younger David out of his own history. The present David "
-            "vanished. The base burned. Your wife, Dr. Lin, never came home.")
+    show_message(
+        "THE WAY HOME - Archive: forty years ago",
+        "NEWSREADER: Another city has begun evacuating its residents. "
+        "Without reliable electricity, water pumps have stopped, hospitals "
+        "are closing, and winter heating is failing.\n\n"
+        "Families are leaving homes they may never see again. "
+        "Even fusion power has failed to become affordable on a large scale.\n\n"
+        "Tonight, a research team prepares to test a different answer "
+        "to the energy crisis: a machine called the Rewinder."
+    )
+
+    show_message(
+        "Archive interview - before the experiment",
+        "REPORTER: How could reaching into the past help us now?\n\n"
+        "DAVID: The Rewinder retrieves matter from an earlier time. "
+        "If we can recover usable fuel with less energy than it provides, "
+        "we could power the cities again. Our small tests are promising, "
+        "but we still have much to prove.\n\n"
+        "REPORTER: And what would success mean to you personally?\n\n"
+        "DAVID: Families returning to their streets. Lights in their windows. "
+        "A reason to unpack the bags they left beside the door.\n\n"
+        "DAVID: I'm building a way home."
+    )
+
+    show_message(
+        "Archive report - the accident",
+        "The interview ends. A later report describes what happened next.\n\n"
+        "After successful tests with non-living matter, David volunteered "
+        "for the first human trial. The team hoped to prove that the "
+        "Rewinder could safely navigate a living person's timeline.\n\n"
+        "Instead, it pulled a younger David out of his own history. "
+        "The present David vanished. Reality tore around the machine, "
+        "and the base burned.\n\n"
+        "You helped build the Rewinder. You survived the accident. "
+        "Your wife, Dr. Lin, did not.\n\n"
+        "The world lost its promised way home. You lost yours."
+    )
     show_message("Forty years later",
             "You are seventy now. You helped David build the Rewinder. "
             "Tonight you return to its sealed base with a new theory: "
