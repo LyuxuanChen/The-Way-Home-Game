@@ -71,7 +71,7 @@ def new_state():
         "power": False, "badge": False, "diary": False,
         "calibrated": False, "past": False, "fade": 0,
         "location": "Lobby", "notes": {},
-        "david_ready": False, "cosign": False, "ending": None,
+        "david_ready": False, "cosign": False, "ending": None, "coolant_unlocked": False,
     }
 
 
@@ -377,6 +377,79 @@ def persuade(state):
 
 # 8. SABOTAGE ROUTE
 def sabotage(state):
+    # Add this block immediately below: def sabotage(state):
+    # Keep the existing technician and vent code below this block.
+    if state["coolant_unlocked"] == False:
+        show_message(
+            "Coolant room - locked maintenance door",
+            "Your badge cannot open the coolant room.\n\n"
+            "Beside the keypad is a note from Zhou:\n"
+            "'Forgot the maintenance code? Rebuild the four symbols\n"
+        )
+        # Each dictionary holds one diagram's labelled (x, y) points.
+        diagrams = [
+            {"A": (3, 6), "B": (3, 0)},
+            {"A": (4, 6), "B": (1, 3), "C": (4, 3), "D": (4, 0)},
+            {"A": (1, 6), "B": (5, 6), "C": (2, 0)},
+            {"A": (1, 6), "B": (3, 6), "C": (5, 5), "D": (3, 3),
+             "E": (2, 3), "F": (5, 1), "G": (3, 0), "H": (1, 0)}
+        ]
+        strokes = [
+            "Connect A-B.",
+            "Connect A-B-C-A. Lift your pen, then connect A-D.",
+            "Connect A-B-C. Lift your pen, then connect D-E.",
+            "Connect A-B-C-D-E. Lift your pen, then connect D-F-G-H."
+        ]
+        failures = 0
+        while True:
+            action = choose(
+                "Maintenance keypad",
+                "Each diagram makes one digit. Read diagrams 1 to 4.\n"
+                "You can sketch the lines on paper. Reading and retries are free.",
+                [("1", "View the four coordinate diagrams"),
+                 ("2", "Enter the four-digit code"),
+                 ("3", "Return to the corridor")]
+            )
+            if action == "3":
+                return None
+            if action == "1":
+                for index in range(4):
+                    points = diagrams[index]
+
+                    diagram = (
+                        "y\n"
+                        "6 | . . . . . . .\n"
+                        "5 | . . . . . . .\n"
+                        "4 | . . . . . . .\n"
+                        "3 | . . . . . . .\n"
+                        "2 | . . . . . . .\n"
+                        "1 | . . . . . . .\n"
+                        "0 | . . . . . . .\n"
+                        "  +--------------\n"
+                        "    0 1 2 3 4 5 6  x\n\n"
+                    )
+                    diagram += "Coordinates:\n"
+                    diagram += str(list(points.values()))
+                    show_message("Coordinate diagram " + str(index + 1), diagram)
+            elif action == "2":
+                code = read_answer("Four-digit code (Q to quit): ")
+                if code == "1473":
+                    state["coolant_unlocked"] = True
+                    state["notes"]["Coolant door code"] = "1473 - door unlocked."
+                    show_message(
+                        "Door unlocked",
+                        "The lock releases. You slip inside.\n"
+                        "Footsteps echo between the coolant tanks."
+                    )
+                    break
+                failures += 1
+                print("The code is incorrect. The door stays locked.")
+                if failures >= 4:
+                    print("Hint: The diagrams form 1, 4, 7 and 3. Enter 1473.")
+                elif failures >= 2:
+                    print("Hint: Each connected shape is a handwritten digit.")
+                    print("Diagram 2 has a triangle; diagram 3 is a crossed digit.")
+
     choice = choose("Coolant room - technician",
                        "The technician walks a fixed round. A sign warns that "
                        "venting before ignition will destroy the return channel. "
