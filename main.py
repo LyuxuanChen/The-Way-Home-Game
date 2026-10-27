@@ -211,6 +211,84 @@ def lobby(state):
                     hint += "\nCOOL is III, AUX is II, MAIN is I, ANCHOR is IV: 3, 2, 1, 4."
                 show_message("Wrong breaker order", hint)
 
+# 4. FIRST PUZZLE: THE BLACK-BOX GRIDS
+def lobby(state):
+    scanned = False
+    moves = 0
+    relays = [False, True, False, True]
+    relay_names = ["MAIN", "AUX", "COOL", "ANCHOR"]
+    toggle_map = {
+        "1": [0, 1, 2],
+        "2": [1, 2, 3],
+        "3": [0, 2, 3],
+        "4": [0, 1, 3],
+    }
+    while not state["power"]:
+        choice = choose(
+            "Lobby - Dead Breaker Board",
+            "The main grid is dead. Four unlabelled manual levers project into the wall panel.\n"
+            "Their wiring is completely obscured by industrial shielding.\n\n"
+            "I MAIN | II AUX | III COOL | IV ANCHOR",
+            [
+                ("1", "Scan the shielded panel casing"),
+                ("2", "Step up to the manual level control panel"),
+                ("3", "Read notebook")
+            ]
+        )
+        if choice == "1":
+            scanned = True
+            state["notes"]["Panel casing"] = "Unlabelled heavy-duty actuators. Each lever alters multiple relay phases simultaneously. Observation and note-taking required."
+            show_message(
+                "Scan results",
+                "Your scanner reads a faded warning on the casing:\n\n"
+                "'CAUTION: Actuators operate on a multi-phase cascading matrix. "
+                "No individual lever controls a single line. Map the circuit responses manually.'\n\n"
+                "Copied to notebook."
+            )
+        elif choice == "3":
+            notebook(state)
+        elif not scanned:
+            show_message(
+                "Missing instructions",
+                "The panel casing is locked under safety protocols. Scan the panel casing first."
+            )
+        else:
+            while not state["power"]:
+                relay_display = " | ".join([f"{relay_names[i]}: {'LOCKED' if locked else 'TRIPPED'}" for i, locked in enumerate(relays)])
+                lever = choose(
+                    "Black-Box Actuator Panel",
+                    f"Current Status: [ {relay_display} ]\n"
+                    "Select an unlabelled lever to pull:",
+                    [
+                        ("1", "Lever Alpha"),
+                        ("2", "Lever Beta"),
+                        ("3", "Lever Gamma"),
+                        ("4", "Lever Delta"),
+                        ("5", "Step back from the panel")
+                    ]
+                )
+                if lever == "5":
+                    break
+                if lever in toggle_map:
+                    moves += 1
+                    for idx in toggle_map[lever]:
+                        relays[idx] = not relays[idx]
+                    if all(relays):
+                        state["power"] = True
+                        show_message(
+                            "Power restored",
+                            f"With a deafening series of metallic clanks, all four magnetic locks snap into place.\n\n"
+                            f"Puzzle solved in {moves} moves. Emergency lights wake, and your scanner drinks full power from the grid."
+                        )
+                        break
+                    else:
+                        print(f"\n[System: Lever pulled. ({moves} moves elapsed)]")
+                        if moves == 4:
+                            print("[Hint: Notice how pulling a lever flips multiple indicators at once. Try remember which indicators change for each leverto decode the matrix.]")
+                        elif moves == 8:
+                            print("[Hint: Each lever controls exactly 3 connected relays in a triangle-interlocked loop. Look for symmetry in your notes.]")
+                        elif moves >= 12:
+                            print("[Hint (Diagnostic Log): Lever Alpha controls MAIN, AUX, COOL. Lever Beta controls AUX, COOL, ANCHOR. Lever Gamma controls MAIN, COOL, ANCHOR. Lever Delta controls MAIN, AUX, ANCHOR. (Target state: all four LOCKED).]")
 
 # 5. BADGE, DIARY AND CALIBRATION
 def ruins(state):
