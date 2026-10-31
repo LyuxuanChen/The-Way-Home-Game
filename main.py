@@ -181,6 +181,15 @@ def lobby(state):
         )
         if choice == "1":
             scanned = True
+            state["notes"]["Zhou's maintenance warning"] = (
+                "Never open VENT 2 before ignition. "
+                "It will disable the core and destroy the return channel."
+            )
+            show_message(
+                "Zhou's maintenance warning",
+                state["notes"]["Zhou's maintenance warning"]
+                + "\n\nCopied to your notebook."
+            )
             state["notes"]["Panel casing"] = "Unlabelled heavy-duty actuators. Each lever alters multiple relay phases simultaneously. Observation and note-taking required."
             show_message(
                 "Scan results",
