@@ -1,11 +1,8 @@
-"""The Way Home - beginner version.
+"""The Way Home - Ultimate Puzzle Version.
 
-Run: python3 main.py
+Run: python3 main_ultimate.py
 All game code is in this file. No packages or imports are needed.
-Read CODE_GUIDE.md for a guided explanation.
-
-This version uses ordinary scrolling print/input.
-It does not enforce the assignment's strict 80x24 display requirement.
+Combines the Black-Box lobby, Math calibration, and Coordinate door puzzles.
 """
 
 
@@ -26,7 +23,6 @@ def show_message(title, text):
 
 
 def choose(title, text, options):
-    # options is a list of pairs: choice number and its description.
     print()
     print("--- " + title + " ---")
     print(text)
@@ -51,7 +47,6 @@ def ask_text(title, text):
 
 
 def normalise(text):
-    # Keep letters/numbers only: " To go home! " becomes "togohome".
     result = ""
     for character in text.lower():
         if character.isalnum():
@@ -85,7 +80,6 @@ def update_status(state):
     print("Goal: Stop the experiment. Go home.")
 
 
-
 def spend_turn(state, cost=4):
     """Only past-world actions spend FADE. Return False if the player fades."""
     if state["past"]:
@@ -103,7 +97,6 @@ def notebook(state):
     if text == "":
         text = "You have not recorded any clues yet."
     show_message("Notebook (no FADE cost)", text)
-
 
 
 # 3. INTRODUCTION
@@ -162,56 +155,7 @@ def prologue():
             "preserves your memories. Every ending offers R to restart.")
 
 
-# 4. FIRST PUZZLE: THE BREAKERS
-def lobby(state):
-    scanned = False
-    failures = 0
-    while not state["power"]:
-        choice = choose("Lobby - dead board, living card",
-                           "The breaker board is dead. Your scanner has just enough "
-                           "battery for one saved view of this lobby's past.\n\n"
-                           "I MAIN | II AUX | III ...OL | IV ANCHOR | V LIGHTS",
-                           [("1", "Scan the lobby's past"), ("2", "Set breaker order"),
-                            ("3", "Read notebook")])
-        if choice == "1":
-            scanned = True
-            state["notes"]["Duty card"] = "COOL - AUX - MAIN - ANCHOR. Names, not numbers."
-            state["notes"]["Review notice"] = "Original test time: 21:00. Subject to revision."
-            state["notes"]["Zhou's maintenance note"] = "Bleed VENT 2 before ignition."
-            show_message("Battery snapshot",
-                    "An intact duty card reads: RESTORE ORDER: COOL - AUX - MAIN - ANCHOR.\n\n"
-                    "Below it: 'Original test time: 21:00. Subject to revision.'\n\n"
-                    "Zhou's note: 'Bleed VENT 2 before ignition.' "
-                    "All three clues are copied into your notebook.")
-        elif choice == "3":
-            notebook(state)
-        elif not scanned:
-            show_message("Missing instructions", "Guessing could damage the board. Scan the old duty card first.")
-        else:
-            order = ""
-            for position in range(1, 5):
-                order += choose("Breaker " + str(position) + " of 4",
-                                   "Chosen so far: " + (order or "none") +
-                                   "\nDuty order: COOL - AUX - MAIN - ANCHOR\n"
-                                   "I MAIN | II AUX | III ...OL | IV ANCHOR | V LIGHTS",
-                                   [("1", "I"), ("2", "II"), ("3", "III"),
-                                    ("4", "IV"), ("5", "V")])
-            if order == "3214":
-                state["power"] = True
-                show_message("Power restored",
-                        "The relay holds. III, II, I, IV. COOL, AUX, MAIN, ANCHOR.\n\n"
-                        "Emergency lights wake. Your scanner charges from the board: "
-                        "full SCAN is now available. The corridor door releases.")
-            else:
-                failures += 1
-                hint = "The relay snaps back. You can retry without penalty."
-                if failures >= 2:
-                    hint += "\nThe card lists names. Match them to the board's Roman numerals."
-                if failures >= 4:
-                    hint += "\nCOOL is III, AUX is II, MAIN is I, ANCHOR is IV: 3, 2, 1, 4."
-                show_message("Wrong breaker order", hint)
-
-# 4. FIRST PUZZLE: THE BLACK-BOX GRIDS
+# 4. FIRST PUZZLE: BLACK-BOX ACTUATOR GRIDS (from main(3).py)
 def lobby(state):
     scanned = False
     moves = 0
@@ -231,7 +175,7 @@ def lobby(state):
             "I MAIN | II AUX | III COOL | IV ANCHOR",
             [
                 ("1", "Scan the shielded panel casing"),
-                ("2", "Step up to the manual level control panel"),
+                ("2", "Step up to the manual lever control panel"),
                 ("3", "Read notebook")
             ]
         )
@@ -284,13 +228,12 @@ def lobby(state):
                     else:
                         print(f"\n[System: Lever pulled. ({moves} moves elapsed)]")
                         if moves == 4:
-                            print("[Hint: Notice how pulling a lever flips multiple indicators at once. Try remember which indicators change for each leverto decode the matrix.]")
-                        elif moves == 8:
-                            print("[Hint: Each lever controls exactly 3 connected relays in a triangle-interlocked loop. Look for symmetry in your notes.]")
-                        elif moves >= 12:
-                            print("[Hint (Diagnostic Log): Lever Alpha controls MAIN, AUX, COOL. Lever Beta controls AUX, COOL, ANCHOR. Lever Gamma controls MAIN, COOL, ANCHOR. Lever Delta controls MAIN, AUX, ANCHOR. (Target state: all four LOCKED).]")
+                            print("[Hint: Notice how pulling a lever flips multiple indicators at once.]")
+                        elif moves >= 8:
+                            print("[Hint (Diagnostic Log): Lever Alpha controls MAIN, AUX, COOL. Beta controls AUX, COOL, ANCHOR. Gamma controls MAIN, COOL, ANCHOR. Delta controls MAIN, AUX, ANCHOR.]")
 
-# 5. BADGE, DIARY AND CALIBRATION
+
+# 5. RUINS & CORE CALIBRATION: ANTI-TAMPER MATH PUZZLE (from v1.py)
 def ruins(state):
     failures = 0
     while not state["calibrated"]:
@@ -328,35 +271,66 @@ def ruins(state):
                                    [("1", "Scan David's diary"), ("2", "Return to corridor")])
                 if action == "1":
                     state["diary"] = True
-                    state["notes"]["David's diary"] = "Revised: 04:17. After tonight, everything is different. - D."
+                    state["notes"]["David's diary"] = "Revised: 04:16. After tonight, everything is different. - D."
+                    state["notes"]["David's remark"] = "You will need to remember the order of simple mathematical operations."
                     show_message("Diary recovered", state["notes"]["David's diary"] +
                             "\n\nYou copy both the time and his exact words into your notebook.")
+                    show_message("David's remark", state["notes"]["David's remark"])
         elif choice == "4":
             notebook(state)
         else:
             if not state["diary"]:
                 show_message("Calibration needs evidence",
-                        "The console warns: TARGET TIME WAS REVISED. The lobby's 21:00 "
-                        "notice is outdated. Find David's revision in the control room.")
+                        "The console warns: TARGET TIME WAS REVISED. Find David's revision in the control room.")
                 continue
+            i = 2
+            n = "1234"
+            k = list(n)
+            k[0] = str((int(k[0]) + i) % 10)
+            k[1] = str(abs((int(k[1])) - i) % 10)
+            k[2] = str((int(k[2]) * i) % 10)
+            k[3] = str((int(k[3]) // i) % 10)
+            k[0], k[2] = k[2], k[0]
+            k[1], k[3] = k[3], k[1]
+            demo_output = "".join(k)
+
+            real_time = "0416"
+            b = list(real_time)
+            b[0] = str((int(b[0]) + i) % 10)
+            b[1] = str(abs((int(b[1])) - i) % 10)
+            b[2] = str((int(b[2]) * i) % 10)
+            b[3] = str((int(b[3]) // i) % 10)
+            b[0], b[2] = b[2], b[0]
+            b[1], b[3] = b[3], b[1]
+            correct_answer = "".join(b)
+
+            show_message("Core calibration - anti-tamper mode",
+                    "Plain target times are rejected. David sealed the console "
+                    "before the accident.\n\n"
+                    "Last self-test: INPUT 1234 -> ECHO " + demo_output + "\n\n"
+                    "A card is taped beside the keys, in David's handwriting:\n"
+                    "'Count the digits in order: + shift, - shift, x shift, / shift.\n"
+                    "Then let the shadows cross: 1st trades with 3rd, 2nd with 4th.'")
             if failures >= 3:
-                answer = choose("Calibration fallback", "Choose the REVISED test time.",
-                                   [("1", "21:00"), ("2", "04:17"), ("3", "12:00")])
-                correct = answer == "2"
+                answer = choose("Calibration fallback", "Choose the sealed form of the REVISED test time.",
+                                   [("1", "2100"), ("2", "0416"), ("3", correct_answer)])
+                correct = answer == "3"
             else:
                 answer = ask_text("Core calibration", "TARGET TIME (it was revised once).\n"
-                                 "Enter the revised time (for example 21:00 input 2100), or Q to quit.")
-                correct = normalise(answer) in ("0417", "417")
+                                 "Enter the sealed form of the revised time (diary: 04:16), or Q to quit.")
+                correct = normalise(answer) == correct_answer
             if correct:
                 state["calibrated"] = True
                 show_message("Coordinates locked",
-                        "The hands settle at 04:17. Every past view settles with them, "
+                        "The hands settle at 04:16. Every past view settles with them, "
                         "like dust. The Rewinder is ready.")
             else:
                 failures += 1
                 text = "Coordinate not on the mainline. No penalty; try again."
+                if failures >= 1:
+                    text += "\nFour equations, one shift: 1+?, 2-?, 3x?, 4/? - all four must agree."
                 if failures >= 2:
-                    text += "\nDavid revised the time to 04:17. Check your notebook."
+                    text += "\nThe shift is 2. Do not forget the shadows cross at the end."
                 show_message("Calibration rejected", text)
 
 
@@ -381,7 +355,7 @@ def crossing(state):
     update_status(state)
     show_message("The same rooms, alive",
             "White noise. The corridor is clean. Someone laughs behind a door. "
-            "The machine has carried you to 04:17, before the test.\n\n"
+            "The machine has carried you to 04:16, before the test.\n\n"
             "David is in the preparation room. A technician guards the coolant "
             "room. The experiment hall holds the override console.\n\n"
             "The ignition countdown is paused for preparation; only your actions "
@@ -446,37 +420,23 @@ def persuade(state):
             "He agrees to add his private key beside yours. "
             "Meet him at the experiment hall console."
         )
-    else:
-        show_message("He steps aside", "David studies her photograph and nods. "
-                "He will let you use the override, but the machine must abort "
-                "without his signature. Your memories will be the wick.")
-    return None
 
 
-# 8. SABOTAGE ROUTE
+# 8. SABOTAGE ROUTE & COORDINATE DOOR PUZZLE (from main(3).py)
 def sabotage(state):
-    # Add this block immediately below: def sabotage(state):
-    # Keep the existing technician and vent code below this block.
-    if state["coolant_unlocked"] == False:
+    if not state["coolant_unlocked"]:
         show_message(
             "Coolant room - locked maintenance door",
             "Your badge cannot open the coolant room.\n\n"
             "Beside the keypad is a note from Zhou:\n"
-            "'Forgot the maintenance code? Rebuild the four symbols\n"
+            "'Forgot the maintenance code? Rebuild the four symbols'\n"
         )
-        # Each dictionary holds one diagram's labelled (x, y) points.
         diagrams = [
             {"A": (3, 6), "B": (3, 0)},
             {"A": (4, 6), "B": (1, 3), "C": (4, 3), "D": (4, 0)},
             {"A": (1, 6), "B": (5, 6), "C": (2, 0)},
             {"A": (1, 6), "B": (3, 6), "C": (5, 5), "D": (3, 3),
              "E": (2, 3), "F": (5, 1), "G": (3, 0), "H": (1, 0)}
-        ]
-        strokes = [
-            "Connect A-B.",
-            "Connect A-B-C-A. Lift your pen, then connect A-D.",
-            "Connect A-B-C. Lift your pen, then connect D-E.",
-            "Connect A-B-C-D-E. Lift your pen, then connect D-F-G-H."
         ]
         failures = 0
         while True:
@@ -493,7 +453,6 @@ def sabotage(state):
             if action == "1":
                 for index in range(4):
                     points = diagrams[index]
-
                     diagram = (
                         "y\n"
                         "6 | . . . . . . .\n"
@@ -526,7 +485,6 @@ def sabotage(state):
                     print("Hint: The diagrams form 1, 4, 7 and 3. Enter 1473.")
                 elif failures >= 2:
                     print("Hint: Each connected shape is a handwritten digit.")
-                    print("Diagram 2 has a triangle; diagram 3 is a crossed digit.")
 
     choice = choose("Coolant room - technician",
                        "The technician walks a fixed round. A sign warns that "
@@ -538,16 +496,15 @@ def sabotage(state):
     if choice == "3":
         return None
     if choice == "1":
-        alive = spend_turn(state, 19)  # Action +4, alarm +15.
+        alive = spend_turn(state, 19)
         show_message("Caught", "The technician raises the alarm and escorts you out. "
-                "Action +4, alarm +15 FADE. You can return and wait for his round.")
+                "Action +4, alarm +15 FADE.")
         if alive:
             return None
         return "E"
     while True:
         choice = choose("Coolant room - vents",
-                           "The technician turns the corner. Three vents are labelled. "
-                           "Waiting and reading your notebook do not cost FADE.",
+                           "The technician turns the corner. Three vents are labelled.",
                            [("1", "Bleed VENT 1"), ("2", "Bleed VENT 2"),
                             ("3", "Bleed VENT 3"), ("4", "Read notebook"), ("5", "Leave")])
         if choice == "5":
@@ -562,8 +519,7 @@ def sabotage(state):
                     "The experiment cannot run. The core burns out the crossing "
                     "channel as it shuts down. You have saved them, but lost the way home.")
             return "C"
-        show_message("Nothing changes", "The vent equalises silently. That was not Zhou's vent. "
-                "The action cost 4 FADE. His maintenance note is in your notebook.")
+        show_message("Nothing changes", "The vent equalises silently. That was not Zhou's vent.")
 
 
 # 9. FINAL PASSPHRASE
@@ -598,7 +554,7 @@ def override(state):
         show_message("Override rejected", hint)
 
 
-# 10. CHOOSE WHERE TO GO IN THE PAST
+# 10. LIVING BASE NAVIGATION
 def living_base(state):
     while True:
         state["location"] = "Past corridor"
@@ -606,8 +562,7 @@ def living_base(state):
         choice = choose("The living base",
                            "The corridors lead to David, the coolant room and the console. "
                            "You can also hear familiar laughter through the canteen window.\n\n"
-                           "Each destination costs 4 FADE outward and 4 on return. "
-                           "Reading your notebook is free.",
+                           "Each destination costs 4 FADE outward and 4 on return.",
                            [("1", "Preparation room: speak to David"),
                             ("2", "Coolant room: consider sabotage"),
                             ("3", "Experiment hall: override or assault"),
@@ -635,9 +590,7 @@ def living_base(state):
                 ending = "E"
         else:
             action = choose("Experiment hall",
-                               "The override console needs David's cooperation. "
-                               "You could instead rush the controls, but your body "
-                               "could not survive a struggle.",
+                               "The override console needs David's cooperation.",
                                [("1", "Use designer override"), ("2", "Rush the console"),
                                 ("3", "Leave")])
             if action == "1":
@@ -647,8 +600,7 @@ def living_base(state):
                     show_message("Override locked", "David must authorise access. Speak to him in preparation.")
             elif action == "2":
                 confirm = choose("A final, violent choice",
-                                    "David stands between you and the controls. "
-                                    "A struggle may kill you both. Proceed?",
+                                    "David stands between you and the controls. Proceed?",
                                     [("1", "Proceed (fatal ending)"), ("2", "Step away")])
                 if confirm == "1":
                     if spend_turn(state):
@@ -668,36 +620,23 @@ def finish(state, ending):
     stories = {
         "A": "Two signatures stop the experiment. David's memories and the logs "
              "carry the dying timeline, leaving yours intact.\n\n"
-             "Rain on a kitchen window. A kettle whistling. Forty years of grief "
-             "that no one in this world remembers but you. She turns from the "
-             "stove and smiles like you never left. 'You're home.'\n\nFULL WIN: "
+             "Rain on a kitchen window. A kettle whistling. 'You're home.'\n\nFULL WIN: "
              "You saved her, returned home, and kept your memories.",
         "B": "The experiment stops. The old line burns away, using your memories "
-             "as its wick.\n\nShe is alive in the kitchen. You know her, but not "
-             "the forty years you spent trying to return. You win everything "
-             "except the reason why.\n\nPARTIAL WIN: Next time, ask David to "
-             "co-sign. Something in his diary could convince him.",
+             "as its wick.\n\nShe is alive in the kitchen. You win everything "
+             "except the reason why.\n\nPARTIAL WIN: Next time, ask David to co-sign.",
         "C": "The test can never run. The return channel is gone.\n\nYou live "
-             "out this past as a seventy-year-old consultant. Your younger self "
-             "and your wife share a life you can only watch from a distance. "
-             "You must stay at least five metres from them.\n\nPARTIAL WIN: "
-             "They live, but you cannot go home.",
+             "out this past as a seventy-year-old consultant staying five metres away.\n\nPARTIAL WIN.",
         "D": "The scuffle kills David before ignition. Your heart stops on "
-             "the console glass. The experiment never runs.\n\nReality "
-             "re-weaves around a report: 'an unidentified intruder'. No one "
-             "living knows who saved them.\n\nSACRIFICIAL ENDING: Two graves.",
-        "E": "The weave rejects your presence. Your hands turn transparent; "
-             "the corridor passes through them.\n\nThe world will never "
-             "know you tried.\n\nFAILURE: Avoid your younger self, commit at "
-             "the will gate, and finish before FADE reaches 100.",
+             "the console glass.\n\nSACRIFICIAL ENDING: Two graves.",
+        "E": "The weave rejects your presence. Your hands turn transparent.\n\nFAILURE.",
     }
     return choose("ENDING " + ending + " - " + ENDING_NAMES[ending], stories[ending],
                      [("r", "Restart from the beginning"), ("q", "Quit")])
 
 
-# 12. PUT THE SCENES IN ORDER AND HANDLE RESTART
+# 12. GAME LOOP
 def play():
-    """Start a fresh game each time the player chooses R."""
     while True:
         state = new_state()
         update_status(state)
@@ -711,10 +650,8 @@ def play():
             return state
 
 
-# Start here when you run this file. Importing it for tests does not start a game.
 if __name__ == "__main__":
     try:
         play()
     except (EOFError, KeyboardInterrupt):
         print("\nGame closed.")
-
