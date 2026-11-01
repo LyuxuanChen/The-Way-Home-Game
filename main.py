@@ -1,48 +1,188 @@
 """The Way Home - Ultimate Puzzle Version.
 
-Run: python3 main_ultimate.py
-All game code is in this file. No packages or imports are needed.
+Run: python3 main.py
+All game and 80 x 24 terminal display code is in this file.
+Uses Python standard-library modules only.
 Combines the Black-Box lobby, Math calibration, and Coordinate door puzzles.
 """
 
 
+import curses
+import os
+import sys
+import textwrap
+
+WIDTH = 80
+HEIGHT = 24
+PAGE_LINES = 22
+
+screen = None
+pending_lines = []
+
+
+def console_print(*values):
+    """Collect output, wrapping long lines instead of cutting off the story."""
+    text = " ".join(str(value) for value in values)
+    for paragraph in text.split("\n"):
+        lines = textwrap.wrap(
+            paragraph, width=WIDTH - 1,
+            replace_whitespace=False, break_on_hyphens=False
+        )
+        pending_lines.extend(lines or [""])
+
+
+def read_page(lines, prompt, enter_only=False):
+    """Read an answer; pause and discard game input while undersized."""
+    answer = ""
+    previous_size = None
+    redraw = True
+    # Keep both the prompt and the typed answer on row 22.
+    max_answer = max(0, WIDTH - 1 - len(prompt))
+
+    while True:
+        actual = os.get_terminal_size(sys.stdin.fileno())
+        size = (max(1, actual.lines), max(1, actual.columns))
+        try:
+            if size != screen.getmaxyx():
+                curses.resizeterm(*size)
+            if size != previous_size:
+                # Do not accept keystrokes queued while the game was paused.
+                if (previous_size is not None
+                        and (previous_size[0] < HEIGHT or previous_size[1] < WIDTH)
+                        and size[0] >= HEIGHT and size[1] >= WIDTH):
+                    curses.flushinp()
+                previous_size = size
+                redraw = True
+
+            large_enough = size[0] >= HEIGHT and size[1] >= WIDTH
+            if redraw:
+                screen.erase()
+                if large_enough:
+                    for row, line in enumerate(lines):
+                        screen.addnstr(row, 0, line, WIDTH - 1)
+                    screen.addnstr(PAGE_LINES, 0, prompt + answer, WIDTH - 1)
+                else:
+                    for row, line in enumerate(
+                        ("Resize to 80 x 24", "Press q to quit")
+                    ):
+                        if row < size[0] and size[1] > 1:
+                            screen.addnstr(row, 0, line, size[1] - 1)
+                screen.refresh()
+                redraw = False
+
+            key = screen.get_wch()
+        except curses.error:
+            # A timeout or a resize during drawing: check the size again.
+            redraw = True
+            continue
+
+        if key == curses.KEY_RESIZE:
+            redraw = True
+            continue
+        if key == "\x03":
+            raise KeyboardInterrupt
+        if not large_enough:
+            if key in ("q", "Q"):
+                raise SystemExit
+            continue
+
+        if key in ("\n", "\r", curses.KEY_ENTER):
+            if answer.strip().lower() == "q":
+                raise SystemExit
+            if not enter_only or answer == "":
+                return answer.strip()
+        elif key in ("\b", "\x7f", curses.KEY_BACKSPACE):
+            answer = answer[:-1]
+        elif isinstance(key, str) and key.isascii() and key.isprintable():
+            if enter_only:
+                if key.lower() == "q":
+                    raise SystemExit
+            elif len(answer) < max_answer:
+                answer += key
+        redraw = True
+
+
+def terminal_input(prompt):
+    """Show complete pages, then ask for input on the final page."""
+    lines = pending_lines[:]
+    pending_lines.clear()
+    while len(lines) > PAGE_LINES:
+        read_page(lines[:PAGE_LINES], "Enter: next page | Q: quit: ",
+                  enter_only=True)
+        lines = lines[PAGE_LINES:]
+    return read_page(lines, prompt)
+
+
+def run_terminal(game):
+    """Start curses and restore the normal terminal even after an error."""
+    if not sys.stdin.isatty() or not sys.stdout.isatty():
+        print("Run this game in an interactive terminal (without -T).")
+        return
+
+    def start(window):
+        global screen
+        screen = window
+        pending_lines.clear()
+        curses.noecho()
+        screen.keypad(True)
+        screen.timeout(100)
+        try:
+            curses.curs_set(0)
+        except curses.error:
+            pass
+        game()
+
+    os.environ.pop("COLUMNS", None)
+    os.environ.pop("LINES", None)
+    curses.use_env(False)
+    try:
+        curses.wrapper(start)
+    except (SystemExit, EOFError, KeyboardInterrupt):
+        pass
+    finally:
+        global screen
+        screen = None
+        pending_lines.clear()
+    print("Thanks for playing!")
+
+
 # 1. BASIC INPUT AND OUTPUT
 def read_answer(prompt):
-    answer = input(prompt).strip()
+    answer = terminal_input(prompt)
     if answer.lower() == "q":
-        print("Thanks for playing.")
+        console_print("Thanks for playing.")
         raise SystemExit  # Python's built-in way to stop the program.
     return answer
 
 
 def show_message(title, text):
-    print()
-    print("--- " + title + " ---")
-    print(text)
+    console_print()
+    console_print("--- " + title + " ---")
+    console_print(text)
     read_answer("Press Enter to continue (Q to quit): ")
 
 
 def choose(title, text, options):
-    print()
-    print("--- " + title + " ---")
-    print(text)
+    console_print()
+    console_print("--- " + title + " ---")
+    console_print(text)
 
     allowed = []
     for number, description in options:
-        print(number + ". " + description)
+        console_print(number + ". " + description)
         allowed.append(number)
 
     while True:
         answer = read_answer("Your choice (Q to quit): ").lower()
         if answer in allowed:
             return answer
-        print("Please enter one of the choices shown.")
+        console_print("Please enter one of the choices shown.")
 
 
 def ask_text(title, text):
-    print()
-    print("--- " + title + " ---")
-    print(text)
+    console_print()
+    console_print("--- " + title + " ---")
+    console_print(text)
     return read_answer("Your answer (Q to quit): ")
 
 
@@ -75,9 +215,9 @@ def update_status(state):
         era = "PAST"
     else:
         era = "RUINS"
-    print()
-    print(era, "|", state["location"], "| FADE:", state["fade"], "/ 100")
-    print("Goal: Stop the experiment. Go home.")
+    console_print()
+    console_print(era, "|", state["location"], "| FADE:", state["fade"], "/ 100")
+    console_print("Goal: Stop the experiment. Go home.")
 
 
 def spend_turn(state, cost=4):
@@ -235,11 +375,11 @@ def lobby(state):
                         )
                         break
                     else:
-                        print(f"\n[System: Lever pulled. ({moves} moves elapsed)]")
+                        console_print(f"\n[System: Lever pulled. ({moves} moves elapsed)]")
                         if moves == 4:
-                            print("[Hint: Notice how pulling a lever flips multiple indicators at once.]")
+                            console_print("[Hint: Notice how pulling a lever flips multiple indicators at once.]")
                         elif moves >= 8:
-                            print("[Hint (Diagnostic Log): Lever Alpha controls MAIN, AUX, COOL. Beta controls AUX, COOL, ANCHOR. Gamma controls MAIN, COOL, ANCHOR. Delta controls MAIN, AUX, ANCHOR.]")
+                            console_print("[Hint (Diagnostic Log): Lever Alpha controls MAIN, AUX, COOL. Beta controls AUX, COOL, ANCHOR. Gamma controls MAIN, COOL, ANCHOR. Delta controls MAIN, AUX, ANCHOR.]")
 
 
 # 5. RUINS & CORE CALIBRATION: ANTI-TAMPER MATH PUZZLE (from v1.py)
@@ -429,6 +569,18 @@ def persuade(state):
             "He agrees to add his private key beside yours. "
             "Meet him at the experiment hall console."
         )
+    else:
+        show_message(
+            "He steps aside",
+            "David studies your wife's photograph.\n\n"
+            "DAVID: Lin... I understand why you came back. "
+            "I won't stop you from using the override. "
+            "But I cannot add my signature on this evidence alone.\n\n"
+            "Without his signature, stopping the experiment "
+            "will cost you your memories."
+        )
+
+    return None
 
 
 # 8. SABOTAGE ROUTE & COORDINATE DOOR PUZZLE (from main(3).py)
@@ -489,11 +641,11 @@ def sabotage(state):
                     )
                     break
                 failures += 1
-                print("The code is incorrect. The door stays locked.")
+                console_print("The code is incorrect. The door stays locked.")
                 if failures >= 4:
-                    print("Hint: The diagrams form 1, 4, 7 and 3. Enter 1473.")
+                    console_print("Hint: The diagrams form 1, 4, 7 and 3. Enter 1473.")
                 elif failures >= 2:
-                    print("Hint: Each connected shape is a handwritten digit.")
+                    console_print("Hint: Each connected shape is a handwritten digit.")
 
     choice = choose("Coolant room - technician",
                        "The technician walks a fixed round. A sign warns that "
@@ -660,7 +812,4 @@ def play():
 
 
 if __name__ == "__main__":
-    try:
-        play()
-    except (EOFError, KeyboardInterrupt):
-        print("\nGame closed.")
+    run_terminal(play)
