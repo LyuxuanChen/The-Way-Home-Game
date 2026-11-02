@@ -122,6 +122,8 @@ def run_terminal(game):
     def start(window):
         global screen
         screen = window
+        curses.start_color()
+        curses.use_default_colors()
         pending_lines.clear()
         curses.noecho()
         screen.keypad(True)
