@@ -165,16 +165,17 @@ def show_message(title, text):
 
 
 def choose(title, text, options):
-    console_print()
-    console_print("--- " + title + " ---")
-    console_print(text)
-
     allowed = []
     for number, description in options:
-        console_print(number + ". " + description)
         allowed.append(number)
 
     while True:
+        # Input clears the displayed page, so rebuild the menu on every retry.
+        console_print()
+        console_print("--- " + title + " ---")
+        console_print(text)
+        for number, description in options:
+            console_print(number + ". " + description)
         answer = read_answer("Your choice (Q to quit): ").lower()
         if answer in allowed:
             return answer
