@@ -1,6 +1,6 @@
 """The Way Home - Ultimate Puzzle Version.
 
-Run: python3 main_ultimate.py
+Run: python3 arbsize.py
 All game code is in this file. No packages or imports are needed.
 Combines the Black-Box lobby, Math calibration, and Coordinate door puzzles.
 """
@@ -429,6 +429,18 @@ def persuade(state):
             "He agrees to add his private key beside yours. "
             "Meet him at the experiment hall console."
         )
+    else:
+        show_message(
+            "He steps aside",
+            "David studies your wife's photograph.\n\n"
+            "DAVID: Lin... I understand why you came back. "
+            "I won't stop you from using the override. "
+            "But I cannot add my signature on this evidence alone.\n\n"
+            "Without his signature, stopping the experiment "
+            "will cost you your memories."
+        )
+
+    return None
 
 
 # 8. SABOTAGE ROUTE & COORDINATE DOOR PUZZLE (from main(3).py)
