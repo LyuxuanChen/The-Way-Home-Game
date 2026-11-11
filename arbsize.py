@@ -1,12 +1,7 @@
-"""The Way Home - Ultimate Puzzle Version.
-
-Run: python3 arbsize.py
-All game code is in this file. No packages or imports are needed.
-Combines the Black-Box lobby, Math calibration, and Coordinate door puzzles.
-"""
+# Final version; earlier versions are available in Git history.
+# Run: python3 arbsize.py
 
 
-# 1. BASIC INPUT AND OUTPUT
 def read_answer(prompt):
     answer = input(prompt).strip()
     if answer.lower() == "q":
@@ -81,7 +76,7 @@ def update_status(state):
 
 
 def spend_turn(state, cost=4):
-    """Only past-world actions spend FADE. Return False if the player fades."""
+    # Only actions in the past raise FADE; exploring the ruins is free.
     if state["past"]:
         state["fade"] += cost
         if state["fade"] > 100:
@@ -99,7 +94,7 @@ def notebook(state):
     show_message("Notebook (no FADE cost)", text)
 
 
-# 3. INTRODUCTION
+# Introduction to the game background
 def prologue():
     show_message(
         "THE WAY HOME - Archive: forty years ago",
@@ -155,7 +150,7 @@ def prologue():
             "preserves your memories. Every ending offers R to restart.")
 
 
-# 4. FIRST PUZZLE: BLACK-BOX ACTUATOR GRIDS (from main(3).py)
+# First Puzzle: Restore power by testing the four levers and setting every relay to LOCKED.
 def lobby(state):
     scanned = False
     moves = 0
@@ -167,6 +162,8 @@ def lobby(state):
         "3": [0, 2, 3],
         "4": [0, 1, 3],
     }
+    # Each lever flips three relay positions.
+
     while not state["power"]:
         choice = choose(
             "Lobby - Dead Breaker Board",
@@ -183,6 +180,7 @@ def lobby(state):
             scanned = True
             state["notes"]["Zhou's maintenance warning"] = (
                 "Never open VENT 2 before ignition. "
+                # This early warning is the clue for the later coolant-room choice.
                 "It will disable the core and destroy the return channel."
             )
             show_message(
@@ -242,7 +240,7 @@ def lobby(state):
                             print("[Hint (Diagnostic Log): Lever Alpha controls MAIN, AUX, COOL. Beta controls AUX, COOL, ANCHOR. Gamma controls MAIN, COOL, ANCHOR. Delta controls MAIN, AUX, ANCHOR.]")
 
 
-# 5. RUINS & CORE CALIBRATION: ANTI-TAMPER MATH PUZZLE (from v1.py)
+# Second puzzle: Find David's revised time in the ruins, then decode it to calibrate the machine.
 def ruins(state):
     failures = 0
     while not state["calibrated"]:
@@ -305,6 +303,7 @@ def ruins(state):
 
             real_time = "0416"
             b = list(real_time)
+            # Join the transformed digits to get the code the player must enter.
             b[0] = str((int(b[0]) + i) % 10)
             b[1] = str(abs((int(b[1])) - i) % 10)
             b[2] = str((int(b[2]) * i) % 10)
@@ -343,7 +342,7 @@ def ruins(state):
                 show_message("Calibration rejected", text)
 
 
-# 6. ENTER THE PAST
+# Entering The Past
 def crossing(state):
     show_message("Rules of the crossing",
             "You will enter a separate possible past. Your younger self is already "
@@ -372,7 +371,7 @@ def crossing(state):
     return None
 
 
-# 7. PERSUADE DAVID
+# Persuade David: Use the photograph or his diary to gain access to the override.
 def persuade(state):
     if state["david_ready"]:
         show_message("David is waiting", "The override is ready in the experiment hall. Finish what you started.")
@@ -405,6 +404,7 @@ def persuade(state):
             "written on the console. You will have to understand why I built it.'")
     options = [("1", "Tell him about the woman in your photograph")]
     if state["diary"]:
+        # The diary earns David's signature; the photo only earns permission.
         options.append(("2", "Quote his diary: After tonight, everything is different."))
     choice = choose("David - why did you come?",
                        "He can step aside, or join you in signing the abort. "
@@ -443,9 +443,10 @@ def persuade(state):
     return None
 
 
-# 8. SABOTAGE ROUTE & COORDINATE DOOR PUZZLE (from main(3).py)
+# Third puzzle: Use the coordinates to work out the coolant door's four-digit code.
 def sabotage(state):
     if not state["coolant_unlocked"]:
+        # Once opened, the coolant door stays unlocked for this run.
         show_message(
             "Coolant room - locked maintenance door",
             "Your badge cannot open the coolant room.\n\n"
@@ -543,7 +544,7 @@ def sabotage(state):
         show_message("Nothing changes", "The vent equalises silently. That was not Zhou's vent.")
 
 
-# 9. FINAL PASSPHRASE
+# Final override: David's signature determines which ending you get.
 def override(state):
     failures = 0
     while True:
@@ -575,7 +576,7 @@ def override(state):
         show_message("Override rejected", hint)
 
 
-# 10. LIVING BASE NAVIGATION
+# Final ending: Approaching your younger self causes you to fade away.
 def living_base(state):
     while True:
         state["location"] = "Past corridor"
@@ -634,7 +635,7 @@ def living_base(state):
             return "E"
 
 
-# 11. SHOW THE ENDING
+# Display the ending reached and let the player restart or quit.
 def finish(state, ending):
     state["ending"] = ending
     update_status(state)
@@ -656,7 +657,7 @@ def finish(state, ending):
                      [("r", "Restart from the beginning"), ("q", "Quit")])
 
 
-# 12. GAME LOOP
+# Running the Game
 def play():
     while True:
         state = new_state()
