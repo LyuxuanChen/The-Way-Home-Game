@@ -1,5 +1,6 @@
 # Final version; earlier versions are available in Git history.
 # Run: python3 main.py
+# In the course Docker folder, run: docker compose run --rm game python3 main.py
 
 import curses
 import os

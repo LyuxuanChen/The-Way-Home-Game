@@ -1,6 +1,6 @@
 # Final version; earlier versions are available in Git history.
 # Run: python3 arbsize.py
-
+# In the course Docker folder, run: docker compose run --rm game python3 arbsize.py
 
 def read_answer(prompt):
     answer = input(prompt).strip()
