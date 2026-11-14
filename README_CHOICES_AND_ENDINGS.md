@@ -1,22 +1,5 @@
 # The Way Home — All Choices and Endings
 
-Spoiler walkthrough and testing reference, based on main.py on 1 November 2026.
-
-This guide describes the **full game**, with the prologue and lobby enabled.
-The current test setup comments out those two calls in play(); the user will
-restore them. No game code was changed to create this guide.
-
-## Run and controls
-
-Run `python3 main.py` in an interactive terminal at least 80 columns by 24 rows.
-Smaller windows pause play and show a resize message. Long messages have pages.
-Press Enter to advance narrative pages; numbered choices require Enter.
-At ordinary prompts, Q then Enter quits. On pagination or resize screens,
-Q quits immediately. Quitting is not one of the five story endings.
-
-Invalid menu entries retry without FADE cost. Reading, notebook pages and
-real-world waiting do not increase FADE. This is turn-based, not timed.
-The routes below omit Enter presses used only to advance messages.
 
 ## Ending overview
 
@@ -393,9 +376,6 @@ Expected: **D**, final FADE **8**.
   once more. Outward travel reaches 100 before the canteen menu.
   Expected E with FADE **100**.
 
-Other combinations of paid actions can also reach E at 100; the above is one
-deterministic test, not the only route.
-
 ## 11. Restart and quit
 
 Every ending offers:
@@ -405,15 +385,4 @@ Every ending offers:
 - **Q:** quit. The display restores the terminal.
 
 There is no save/load system. Exiting does not preserve progress.
-
-## Verification and limits
-
-The assistant checked the source and ran scripted function-level tests for A,
-B, C, D and all three E routes above, plus the Beta/Delta lever solution.
-The ending and FADE values matched this guide. These tests replaced screen and
-input functions with scripted responses; they are **not** full manual curses
-or Docker playthroughs. The group should test those separately.
-
-This document enumerates menu branches and answer classes, not every possible
-repetition of wrong answers or repeated room visits, which can be unbounded.
 
