@@ -1,5 +1,26 @@
 # The Way Home — All Choices and Endings
 
+## How to run
+
+The entry point is `main.py`. Run the game using the provided course Docker environment.
+
+1. Start Docker Desktop and wait until Docker is running.
+2. Place `main.py` inside the starter’s shared `project` folder:
+
+   ```text
+   project_docker/
+   ├── compose.yaml
+   ├── dockerfile
+   └── project/
+       └── main.py
+   ```
+
+3. Open a terminal in `project_docker`, the folder containing `compose.yaml`.
+4. Run:
+
+   ```
+   docker compose run --rm game python3 main.py
+   ```
 
 ## Ending overview
 
